@@ -19,61 +19,59 @@ npm run build        # Build for production (outputs to dist/)
 npm run preview      # Preview production build locally
 
 # Deployment
-npm run deploy       # Deploy to GitHub Pages (runs build first)
+npm run deploy       # Deploy to GitHub Pages (runs build first via predeploy)
 ```
+
+No test script is configured in `package.json` despite Jest being a devDependency.
 
 ## Architecture
 
 ### Tech Stack
 - **Framework:** React 18 + Vite
-- **Styling:** Tailwind CSS with custom color palette (navy, cyan, white, grey, light_grey, dark_blue)
+- **Styling:** Tailwind CSS + CSS Modules per component (`src/components/styles/*.module.css`)
 - **Animation:** Framer Motion for transitions, React Parallax Tilt for hover effects
 - **3D Graphics:** Three.js via @react-three/fiber and @react-three/drei
-- **Contact:** EmailJS for form submissions
+- **Contact:** Formspree (form posts to `https://formspree.io/f/mgeqgkdd`)
 
-### Key Directories
-- `src/components/` - All React components (Navbar, Home, About, Work, Contact, etc.)
-- `src/components/styles/` - CSS modules for component-specific styles
-- `src/constants/index.js` - All static data (projects, technologies, services, social links, nav links)
+### Key Files
+- `src/constants/index.js` - All static content (projects, technologies, services, social, navLinks)
 - `src/utils/motion.js` - Reusable Framer Motion animation variants
-- `src/hoc/SectionWrapper.jsx` - HOC that wraps sections with scroll animations
-- `src/assets/` - Images, icons, and static files
+- `src/hoc/SectionWrapper.jsx` - HOC that wraps sections with scroll-triggered animations
+- `src/ThemeContext.jsx` - React Context providing `theme` ('dark'|'light') and `toggleTheme`
+- `src/index.css` - CSS variable definitions for both themes
 
 ### Theme System
-- Dark/light theme toggle via React Context (`src/ThemeContext.jsx`)
-- CSS variables defined in `src/index.css` (--navy, --cyan, --white, etc.)
-- Theme class applied to root div in App.jsx
+- `ThemeProvider` wraps the app and applies `.App.dark` or `.App.light` class to a root `<div>`
+- CSS variables (`--navy`, `--cyan`, `--white`, `--grey`, `--light-grey`, `--light-blue`, `--dark-blue`, `--low-opacity`) are defined in `src/index.css` for both themes
+- Tailwind color names (`navy`, `cyan`, `grey`, `light_grey`, `dark_blue`) map to the dark-mode hex values in `tailwind.config.js` — use CSS variables for theme-reactive styles instead
 
 ### Animation Patterns
-The `utils/motion.js` file exports reusable variants:
-- `textVariant()` - Text animations with spring physics
-- `fadeIn(direction, type, delay, duration)` - Directional fade-ins
-- `zoomIn(delay, duration)` - Scale animations
-- `slideIn(direction, type, delay, duration)` - Slide effects
-- `staggerContainer()` - Staggered children animations
+`utils/motion.js` exports variants used with Framer Motion:
+- `textVariant(delay?)` - Slides up from y:-50 with spring
+- `fadeIn(direction, type, delay, duration)` - Directional fade (directions: 'left', 'right', 'up', 'down')
+- `zoomIn(delay, duration)` - Scale from 0
+- `slideIn(direction, type, delay, duration)` - Full-width/height slide (uses % values, unlike fadeIn which uses px)
+- `staggerContainer(staggerChildren?, delayChildren?)` - Orchestrates child animations
 
-Use `SectionWrapper` HOC to add scroll-triggered animations to any section component.
+`SectionWrapper(Component, idName, margin)` - HOC signature:
+- `idName` becomes the `id` of an anchor `<span>` for hash navigation
+- `margin` is a Tailwind class applied to the `<motion.section>` (e.g. `'my-8'`)
+- On mobile, animations replay on each viewport entry; on desktop (≥768px) they only play once
 
-### Data Management
-All static content lives in `src/constants/index.js`:
-- `technologies` - Tech stack icons and categories
-- `projects` - Portfolio projects with carousel images and links
-- `services` - Services offered
-- `social` - Social media links with dark/light variants
-- `navLinks` - Navigation items
+### Data Structures in `src/constants/index.js`
+- `technologies` items: `{ stack: ['languages'|'frameworks'|'tools', 'all'], name, icon }`
+- `projects` items: `{ id, name, desc, tech[], img, carousel[], source_link, live_link }`
+- `social` items: `{ id, name, url, icon, icon1 }` — `icon` for dark theme, `icon1` for light theme
+- `services` items: `{ id, icon, title, text }`
+- `navLinks` items: `{ id, name, url }` — URLs use hash format (`/#about`)
 
-### Component Structure
-Main app layout in `App.jsx`:
-1. Home (hero with 3D Stars canvas)
-2. Navbar (fixed, scroll-aware, theme toggle)
-3. About
-4. TechStack
-5. Service
-6. Work (portfolio projects)
-7. Contact (EmailJS integration)
-8. Footer
+### Component Notes
+- `Testimonial` is imported in `App.jsx` but commented out — it exists as a component but is not rendered
+- `Navbar` becomes `position: fixed` after scrolling past 780px
+- `Work` opens a `Popup` component for project detail view with a `react-slick` carousel
+- Each section component (About, TechStack, Service, Work, Contact) is exported as `SectionWrapper(Component, id, margin)` at the bottom of the file
 
 ## Configuration Files
-- `tailwind.config.js` - Custom colors and theme extensions
-- `vite.config.js` - Build config with manual chunk splitting
-- `.eslintrc.json` - Airbnb style with relaxed rules for flexibility
+- `tailwind.config.js` - Custom colors (dark-mode values only; use CSS variables for theme switching)
+- `vite.config.js` - `base: '/'`, manual chunk splitting per `node_modules` package
+- `.eslintrc.json` - Airbnb style guide
