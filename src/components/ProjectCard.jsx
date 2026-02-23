@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
-import { FaGithub, FaExternalLinkAlt } from 'react-icons/fa';
 import style from './styles/projectCard.module.css';
 
 const ProjectCard = ({ project, index, onLearnMore }) => {
@@ -67,31 +66,6 @@ const ProjectCard = ({ project, index, onLearnMore }) => {
           )}
         </div>
 
-        {/* Action links */}
-        <div className={style.actions}>
-          <a
-            href={project.source_link}
-            target="_blank"
-            rel="noreferrer"
-            className={style.action_link}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <FaGithub className={style.action_icon} />
-            Code
-          </a>
-          {project.live_link && (
-            <a
-              href={project.live_link}
-              target="_blank"
-              rel="noreferrer"
-              className={`${style.action_link} ${style.action_link_primary}`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <FaExternalLinkAlt className={style.action_icon} />
-              Live Demo
-            </a>
-          )}
-        </div>
       </div>
     </motion.div>
   );
